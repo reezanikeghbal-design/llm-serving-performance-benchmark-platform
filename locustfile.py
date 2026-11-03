@@ -6,7 +6,7 @@ class BenchmarkUser(HttpUser):
 
     @task
     def generate(self):
-        self.client.post("/generate", json={
+        self.client.post("/generate", headers={"X-API-Key": os.environ.get("API_KEY", "")}, json={
             "prompt": "Explain what an API is in one sentence.",
             "model": os.getenv("LOAD_TEST_MODEL", "llama3.2:1b"),
             "max_tokens": 64,

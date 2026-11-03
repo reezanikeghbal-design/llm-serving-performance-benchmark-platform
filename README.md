@@ -1,5 +1,10 @@
 # LLM Serving & Performance Benchmark Platform
 
+![CI](https://github.com/reezanikeghbal-design/llm-serving-performance-benchmark-platform/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)
+
 A lightweight local platform for serving LLMs through Ollama, benchmarking generation performance, and exposing API metrics.
 
 ## Features

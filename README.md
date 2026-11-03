@@ -82,6 +82,7 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
+# Set API_KEY in .env to a long, random secret before starting the API
 ```
 
 On Windows PowerShell, create the environment file with:
@@ -140,7 +141,7 @@ Check the Prometheus targets page to verify that the API scrape target is availa
 ### List available models
 
 ```bash
-curl http://localhost:8000/models
+curl http://localhost:8000/models -H 'X-API-Key: YOUR_API_KEY'
 ```
 
 ### Generate text
@@ -159,7 +160,7 @@ curl -X POST http://localhost:8000/benchmark \\
   -d '{"prompt":"Explain caching","models":["llama3.2:1b"],"repeats":3}'
 ```
 
-Benchmark reports are written to the `reports/` directory in CSV and JSON formats.
+Benchmark reports are written to the `reports/` directory in CSV and JSON formats. Operational endpoints (`/models`, `/generate`, `/benchmark`, and `/benchmark/results`) require the `X-API-Key` header. `/health` and `/metrics` remain public. Benchmark requests accept up to five models and ten repeats per model. Docker Compose requires `API_KEY` in `.env`.
 
 ## Performance Metrics and Interpretation
 
@@ -186,7 +187,7 @@ The request schema accepts a `stream` field, but generation is currently non-str
 Run the included Locust scenario against the API:
 
 ```bash
-locust -f locustfile.py --host http://localhost:8000
+API_KEY=YOUR_API_KEY locust -f locustfile.py --host http://localhost:8000
 ```
 
 Open the Locust web interface at:

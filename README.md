@@ -5,21 +5,25 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)
 
-A lightweight local platform for serving LLMs through Ollama, benchmarking generation performance, and exposing API metrics.
+A local platform for **serving Large Language Models (LLMs), benchmarking inference performance, and monitoring API-level behavior** using Ollama, FastAPI, Prometheus, and Locust.
 
-## Features
+The project brings together a model-provider interface, synchronous benchmark execution, latency and throughput measurements, system resource snapshots, and CSV/JSON reporting. It is designed as an engineering environment for exploring LLM serving behavior on local hardware.
 
-- FastAPI endpoints for health, model discovery, generation, and benchmark runs
-- Ollama provider abstraction
-- Measurements for end-to-end latency and Ollama-reported token counts/durations
-- Throughput calculated from Ollama generation statistics
-- CSV and JSON benchmark exports
-- Prometheus instrumentation and system CPU/RAM snapshots
-- Locust load-test scenario
-- Docker Compose stack: API, Ollama, Prometheus
-- Automated tests that do not require a running model
+## Key Capabilities
+
+- **LLM serving API:** FastAPI endpoints for health checks, model discovery, text generation, and benchmark execution.
+- **Ollama integration:** A provider abstraction that connects the application to locally served models.
+- **Performance measurement:** End-to-end request latency and Ollama-reported token counts and generation duration.
+- **Throughput calculation:** Generated tokens per second based on Ollama generation statistics.
+- **Benchmark reporting:** Export benchmark results to CSV and JSON.
+- **Observability:** Prometheus instrumentation and CPU/RAM snapshots around benchmark calls.
+- **Load testing:** A Locust scenario for exercising the generation API under configurable load.
+- **Containerized environment:** Docker Compose services for the API, Ollama, and Prometheus.
+- **Automated tests:** A test suite that mocks the model provider and does not require a running LLM.
 
 ## Architecture
+
+The API communicates with a model-provider interface backed by Ollama. Benchmark execution coordinates generation calls, collects available performance and resource measurements, and writes structured reports. Prometheus scrapes the API metrics endpoint.
 
 ```mermaid
 flowchart LR
@@ -32,117 +36,195 @@ flowchart LR
     Prometheus --> API
 ```
 
+## Technology Stack
+
+| Area | Technologies |
+|---|---|
+| Language | Python 3.11+ |
+| API | FastAPI |
+| Model runtime | Ollama |
+| Metrics and monitoring | Prometheus instrumentation |
+| Load testing | Locust |
+| Reporting | CSV, JSON |
+| Containerization | Docker, Docker Compose |
+| Testing | Pytest |
+
 ## Requirements
 
 - Python 3.11+
-- Docker and Docker Compose (for containerized setup)
+- Ollama for local model serving
+- Docker and Docker Compose for containerized setup (optional)
 - 8 GB RAM is a practical starting point for small quantized models; actual requirements depend on model size and context length.
-- CPU-only execution is supported. GPU acceleration is optional and not assumed.
+- CPU-only execution is supported. GPU acceleration is optional and is not assumed.
 
-## Local installation
+## Local Setup
+
+### 1. Create a virtual environment
 
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
+```
+
+Activate it:
+
+**Windows**
+```powershell
+.venv\\Scripts\\activate
+```
+
+**macOS / Linux**
+```bash
+source .venv/bin/activate
+```
+
+### 2. Install dependencies and configure the environment
+
+```bash
 pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Start Ollama separately, then pull a small model:
+On Windows PowerShell, create the environment file with:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 3. Start Ollama and pull a model
+
+Install and start Ollama separately, then download a small model:
 
 ```bash
 ollama pull llama3.2:1b
 ```
 
-Start the API:
+The model must be available to the Ollama service before running generation or benchmark requests.
+
+### 4. Start the API
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Swagger UI: http://localhost:8000/docs
+- API base URL: http://localhost:8000
+- Interactive Swagger documentation: http://localhost:8000/docs
 
 ## Docker Compose
 
+Build and start the API, Ollama, and Prometheus services:
+
 ```bash
 docker compose up --build -d
+```
+
+Pull a model inside the Ollama service:
+
+```bash
 docker compose exec ollama ollama pull llama3.2:1b
 ```
 
-API: http://localhost:8000  
-Prometheus: http://localhost:9090
+Available endpoints:
 
-Check Prometheus targets at `/targets`. The API metrics endpoint is `/metrics`.
+| Service | URL |
+|---|---|
+| FastAPI | http://localhost:8000 |
+| API documentation | http://localhost:8000/docs |
+| Prometheus | http://localhost:9090 |
+| API metrics | http://localhost:8000/metrics |
+| Prometheus targets | http://localhost:9090/targets |
 
-## API examples
+Check the Prometheus targets page to verify that the API scrape target is available.
 
-List models:
+## API Usage
+
+### List available models
 
 ```bash
 curl http://localhost:8000/models
 ```
 
-Generate:
+### Generate text
 
 ```bash
-curl -X POST http://localhost:8000/generate \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8000/generate \\
+  -H "Content-Type: application/json" \\
   -d '{"prompt":"Explain vector databases briefly","model":"llama3.2:1b","max_tokens":100}'
 ```
 
-Run a benchmark:
+### Run a benchmark
 
 ```bash
-curl -X POST http://localhost:8000/benchmark \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8000/benchmark \\
+  -H "Content-Type: application/json" \\
   -d '{"prompt":"Explain caching","models":["llama3.2:1b"],"repeats":3}'
 ```
 
-Reports are written to `reports/` in JSON and CSV.
+Benchmark reports are written to the `reports/` directory in CSV and JSON formats.
 
-## Load testing
+## Performance Metrics and Interpretation
+
+The platform collects the following measurements where the underlying runtime provides the required statistics:
+
+| Measurement | Source / Calculation | Interpretation |
+|---|---|---|
+| End-to-end latency | Measured by the API process around each generation call | Request-level duration observed by the application |
+| Prompt token count | Ollama generation statistics | Runtime-reported metadata; may be unavailable |
+| Generated token count | Ollama generation statistics | Runtime-reported metadata; may be unavailable |
+| Generation duration | Ollama generation statistics | Runtime-reported generation duration |
+| Throughput | Generated tokens divided by Ollama generation duration | Runtime-based generation throughput |
+| CPU and RAM | System-level snapshots around benchmark calls | Host/container observations, not per-model attribution |
+| HTTP request metrics | Prometheus instrumentation | API-level request observability |
+
+Missing Ollama statistics remain `null`; the application does not fabricate token counts or durations.
+
+**Measurement scope matters:** API end-to-end latency and Ollama generation duration represent different measurement boundaries. CPU and RAM readings are system-level snapshots and should not be interpreted as isolated resource consumption for an individual model.
+
+The request schema accepts a `stream` field, but generation is currently non-streaming. Time to First Token (TTFT) is not implemented or reported.
+
+## Load Testing with Locust
+
+Run the included Locust scenario against the API:
 
 ```bash
 locust -f locustfile.py --host http://localhost:8000
 ```
 
-Open the Locust UI at http://localhost:8089 and configure users, spawn rate, and duration. The default task uses a short prompt and small output limit.
+Open the Locust web interface at:
 
-## Tests
+http://localhost:8089
+
+Configure the number of users, spawn rate, and test duration in the UI. The default task uses a short prompt and a small output limit.
+
+Locust collects its own load-test statistics. These measurements complement the application's benchmark reports and should be interpreted separately.
+
+## Testing
+
+Run the automated test suite:
 
 ```bash
 pytest -q
 ```
 
-The default test suite mocks the model provider for benchmark tests and does not download a real LLM.
+The default tests mock the model provider for benchmark-related scenarios. They do not require Ollama to be running and do not download a real LLM.
 
-## Metrics and interpretation
+## Current Limitations
 
-- End-to-end latency is measured by the API process around each generation call.
-- Prompt and generated token counts, plus generation duration, are taken from Ollama when present.
-- Throughput is generated tokens divided by Ollama's generation duration.
-- CPU and RAM are sampled around benchmark calls and are system-level snapshots, not per-model attribution.
-- Missing Ollama statistics remain `null`; the application does not invent token counts.
-- Current implementation accepts `stream` in the request schema but generation is non-streaming. Streaming/TTFT is a planned extension and is not reported as implemented.
+- Benchmark execution is synchronous within the API request; long-running experiments occupy an API worker.
+- Benchmark history is stored in memory and is reset when the API restarts.
+- Generation is non-streaming; TTFT measurement is not implemented.
+- Prometheus instrumentation currently exposes HTTP request metrics. Custom model-specific token and latency counters/histograms are future work.
+- CPU/RAM measurements are host/container-level snapshots, not process-isolated or per-model attribution.
+- Load-test statistics are collected by Locust itself.
+- Results depend on the selected model, hardware, runtime configuration, prompt, and workload; measurements should be compared under controlled conditions.
 
-## Limitations
+## Future Improvements
 
-- Benchmark execution is synchronous within the request; long experiments occupy an API worker.
-- Benchmark history is in memory and resets when the API restarts.
-- Streaming generation and TTFT are not implemented in this initial version.
-- Prometheus instrumentation exposes HTTP request metrics; custom model-specific Prometheus counters/histograms are future work.
-- CPU/RAM snapshots are host/container-level, not process-isolated attribution.
-- Load test metrics are collected by Locust itself.
-
-## Future improvements
-
-- Implement true Ollama streaming and TTFT measurement
-- Add persistent experiment storage
-- Add custom Prometheus metrics for tokens and model latency
-- Add concurrency controls and background benchmark execution
-- Add vLLM provider implementation
-- Add richer comparison charts and confidence intervals
+- Implement true Ollama streaming and TTFT measurement.
+- Add persistent experiment storage and benchmark history.
+- Introduce custom Prometheus metrics for generated tokens, throughput, and model latency.
+- Add concurrency controls and background benchmark execution.
+- Implement an additional provider for vLLM.
+- Add richer model-comparison charts and confidence intervals.
 
 ## License
 

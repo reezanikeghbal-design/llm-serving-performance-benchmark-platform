@@ -1,8 +1,11 @@
+import logging
 import time
 import uuid
 from datetime import datetime, timezone
 from app.benchmark.metrics import throughput, summarize
 from app.benchmark.resources import resource_snapshot
+
+logger = logging.getLogger(__name__)
 
 async def run_benchmark(provider, prompt, models, repeats, temperature, max_tokens):
     experiment_id = str(uuid.uuid4())
@@ -25,8 +28,9 @@ async def run_benchmark(provider, prompt, models, repeats, temperature, max_toke
                     "resources_before": resources_before,
                     "resources_after": resources_after,
                 })
-            except Exception as exc:
-                runs.append({"success": False, "error": str(exc)})
+            except Exception:
+                logger.exception("Benchmark generation failed for model %s", model)
+                runs.append({"success": False, "error": "generation_failed"})
         latencies = [r["latency_ms"] for r in runs if r["success"]]
         summary = summarize(latencies)
         successes = [r for r in runs if r["success"]]

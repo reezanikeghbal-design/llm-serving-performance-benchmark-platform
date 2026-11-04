@@ -11,19 +11,19 @@ The project brings together a model-provider interface, synchronous benchmark ex
 
 ## Dashboard Preview
 
-These illustrative UI mockups demonstrate the platform's serving, benchmark-configuration, and performance-inspection workflows. Displayed metrics are placeholders, not measured results from a benchmark run.
+Explore the model-serving workflow, benchmark configuration, and performance-inspection views. Displayed metrics are sample values, not measured results from a benchmark run.
 
 ### Serving overview
 
-![Illustrative LLM serving overview](docs/images/llm-serving-overview.svg)
+![LLM serving overview](docs/images/llm-serving-overview.svg)
 
 ### Benchmark configuration
 
-![Illustrative benchmark configuration](docs/images/llm-serving-benchmark.svg)
+![benchmark configuration](docs/images/llm-serving-benchmark.svg)
 
 ### Inference metrics
 
-![Illustrative inference metrics dashboard](docs/images/llm-serving-metrics.svg)
+![inference metrics dashboard](docs/images/llm-serving-metrics.svg)
 
 ## Key Capabilities
 

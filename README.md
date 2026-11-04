@@ -9,6 +9,22 @@ A local platform for **serving Large Language Models (LLMs), benchmarking infere
 
 The project brings together a model-provider interface, synchronous benchmark execution, latency and throughput measurements, system resource snapshots, and CSV/JSON reporting. It is designed as an engineering environment for exploring LLM serving behavior on local hardware.
 
+## Dashboard Preview
+
+These illustrative UI mockups demonstrate the platform's serving, benchmark-configuration, and performance-inspection workflows. Displayed metrics are placeholders, not measured results from a benchmark run.
+
+### Serving overview
+
+![Illustrative LLM serving overview](docs/images/llm-serving-overview.svg)
+
+### Benchmark configuration
+
+![Illustrative benchmark configuration](docs/images/llm-serving-benchmark.svg)
+
+### Inference metrics
+
+![Illustrative inference metrics dashboard](docs/images/llm-serving-metrics.svg)
+
 ## Key Capabilities
 
 - **LLM serving API:** FastAPI endpoints for health checks, model discovery, text generation, and benchmark execution.
